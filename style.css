@@ -27,11 +27,12 @@ body {
     display: flex;
     flex-direction: column;
     line-height: 1.5;
+    overflow-x: hidden;
 }
 
 header {
     background: var(--card-bg);
-    padding: 1.25rem 2rem;
+    padding: 1rem 2rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     display: flex;
     justify-content: space-between;
@@ -67,7 +68,7 @@ select, button {
 }
 
 select {
-    min-width: 140px;
+    min-width: 130px;
 }
 
 select:focus, button:focus-visible {
@@ -99,7 +100,7 @@ main {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 2rem 1rem;
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
@@ -108,7 +109,7 @@ main {
 .stats {
     display: flex;
     gap: 2.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     width: 100%;
     justify-content: center;
 }
@@ -148,7 +149,7 @@ main {
     width: 100%;
     max-width: 700px;
     height: 520px;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -186,12 +187,16 @@ main {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 2.5rem;
+    padding: 3.5rem 2.5rem 1.5rem;
     background: var(--card-bg);
     border: 1px solid rgba(0, 0, 0, 0.04);
     transition: box-shadow 0.3s ease;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.card-face::-webkit-scrollbar {
+    display: none;
 }
 
 .card:hover:not(.flipped) .card-front {
@@ -212,6 +217,7 @@ main {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    z-index: 2;
 }
 
 .card-type {
@@ -228,8 +234,8 @@ main {
     font-size: 1.5rem;
     font-weight: 500;
     text-align: center;
-    max-width: 95%;
-    margin-bottom: 1rem;
+    width: 100%;
+    margin-top: auto;
 }
 
 .card-options {
@@ -238,6 +244,7 @@ main {
     gap: 0.6rem;
     width: 100%;
     margin-top: 1.5rem;
+    margin-bottom: auto;
 }
 
 .option-btn {
@@ -251,6 +258,7 @@ main {
     text-align: left;
     color: var(--text);
     line-height: 1.4;
+    width: 100%;
 }
 
 .option-btn:hover:not(:disabled) {
@@ -275,10 +283,12 @@ main {
 }
 
 .card-hint {
-    position: absolute;
-    bottom: 1.5rem;
+    margin-top: auto;
+    padding-top: 1rem;
     font-size: 0.875rem;
     color: var(--text-muted);
+    text-align: center;
+    width: 100%;
 }
 
 .rating-buttons {
@@ -286,6 +296,8 @@ main {
     gap: 0.75rem;
     flex-wrap: wrap;
     justify-content: center;
+    width: 100%;
+    max-width: 700px;
     opacity: 0;
     visibility: hidden;
     transform: translateY(15px);
@@ -299,21 +311,18 @@ main {
 }
 
 .rating-btn {
-    padding: 0.75rem 1.5rem;
+    padding: 0.85rem 1.25rem;
     border: none;
     border-radius: 8px;
     font-size: 0.95rem;
     font-weight: 600;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.rating-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    flex: 1;
+    min-width: calc(25% - 0.75rem);
 }
 
 .rating-btn:active {
-    transform: translateY(0);
+    transform: translateY(1px);
 }
 
 .btn-again { background: #ffebee; color: #c62828; }
@@ -329,7 +338,7 @@ main {
 }
 
 .keyboard-hints {
-    margin-top: 3rem;
+    margin-top: 2rem;
     font-size: 0.85rem;
     color: var(--text-muted);
     text-align: center;
@@ -354,39 +363,75 @@ kbd {
 
 @media (max-width: 768px) {
     header {
-        padding: 1rem;
+        padding: 0.75rem;
         flex-direction: column;
-        align-items: stretch;
+    }
+    h1 {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
     }
     .controls {
-        justify-content: stretch;
+        gap: 0.5rem;
+        width: 100%;
     }
     .controls > * {
         flex: 1;
+        min-width: calc(33.333% - 0.5rem);
+        padding: 0.6rem 0.5rem;
+        font-size: 0.85rem;
+    }
+    .controls select, .controls button {
         text-align: center;
-        min-width: calc(50% - 0.5rem);
     }
     main {
-        padding: 1.5rem 1rem;
-    }
-    .card-container {
-        height: 480px;
-    }
-    .card-content {
-        font-size: 1.25rem;
-    }
-    .card-face {
-        padding: 1.5rem;
-    }
-    .rating-btn {
-        padding: 0.75rem 1rem;
-        flex: 1;
-        min-width: calc(50% - 0.75rem);
+        padding: 1rem;
+        justify-content: flex-start;
     }
     .stats {
-        gap: 1rem;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .stat {
+        flex: 1;
     }
     .stat-value {
         font-size: 1.25rem;
+    }
+    .progress-bar {
+        margin-bottom: 1rem;
+    }
+    .card-container {
+        height: min(65vh, 500px);
+        min-height: 400px;
+        margin-bottom: 1rem;
+    }
+    .card-face {
+        padding: 3.5rem 1rem 1rem;
+    }
+    .card-type {
+        left: 1rem;
+        top: 1rem;
+    }
+    .card-badge {
+        right: 1rem;
+        top: 1rem;
+    }
+    .card-content {
+        font-size: 1.15rem;
+    }
+    .option-btn {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+    .rating-buttons {
+        gap: 0.5rem;
+    }
+    .rating-btn {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+        min-width: calc(50% - 0.5rem);
+    }
+    .keyboard-hints {
+        display: none;
     }
 }

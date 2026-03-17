@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Флеш-картки: Історія України</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -20,8 +20,8 @@
                 <option value="person">Постаті</option>
             </select>
             <select id="importanceFilter">
-                <option value="mandatory">Тільки обов'язкові</option>
-                <option value="all">Всі (з додатковими)</option>
+                <option value="mandatory">Обов'язкові</option>
+                <option value="all">Всі</option>
             </select>
             <select id="modeFilter">
                 <option value="direct">Прямий (Пит. → Відп.)</option>
@@ -29,7 +29,7 @@
                 <option value="test">Тест (НМТ)</option>
             </select>
             <button id="startBtn" class="primary">Почати сесію</button>
-            <button id="resetBtn">Скинути прогрес</button>
+            <button id="resetBtn">Скинути</button>
         </div>
     </header>
 
@@ -45,7 +45,7 @@
             </div>
             <div class="stat">
                 <div class="stat-value" id="statLearning">0</div>
-                <div>Вивчаються</div>
+                <div>Вчимо</div>
             </div>
             <div class="stat">
                 <div class="stat-value" id="statMastered">0</div>
@@ -61,14 +61,14 @@
             <div class="card" id="card">
                 <div class="card-face card-front">
                     <div class="card-type" id="cardType"></div>
-                    <div class="card-badge" id="cardBadge" style="display: none;">Додаткова</div>
+                    <div class="card-badge" id="cardBadge" style="display: none;">Дод.</div>
                     <div class="card-content" id="cardQuestion"></div>
                     <div class="card-options" id="cardOptions" style="display: none;"></div>
                     <div class="card-hint" id="cardHint">Клікніть або натисніть Пробіл, щоб відкрити</div>
                 </div>
                 <div class="card-face card-back">
                     <div class="card-type" id="cardTypeBack"></div>
-                    <div class="card-badge" id="cardBadgeBack" style="display: none;">Додаткова</div>
+                    <div class="card-badge" id="cardBadgeBack" style="display: none;">Дод.</div>
                     <div class="card-content" id="cardAnswer"></div>
                     <div class="card-hint">Оцініть пам'ять</div>
                 </div>
