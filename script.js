@@ -1,7 +1,30 @@
 "use strict";
 
-const FALLBACK_TOPICS = [{"id": 1, "name": "Вступ до історії України"}];
-const FALLBACK_CARDS = [{"type": "date", "topicId": 1, "question": "Немає підключення", "answer": "Запустіть через локальний сервер"}];
+const SUBJECTS = {
+    history: {
+        id: 'history',
+        name: 'Історія України',
+        files: ['materials/history/data.json', 'materials/history/dates.json', 'materials/history/persons.json', 'materials/history/terms.json', 'materials/history/topics.json'],
+        fallbackTopics: [{"id": 1, "name": "Вступ до історії України"}],
+        fallbackCards: [{"type": "date", "topicId": 1, "question": "Немає підключення", "answer": "Запустіть через локальний сервер"}]
+    },
+    english: {
+        id: 'english',
+        name: 'Англійська мова',
+        files: ['materials/english/words.json', 'materials/english/phrases.json', 'materials/english/grammar.json', 'materials/english/topics.json'],
+        fallbackTopics: [{"id": 1, "name": "Basic Vocabulary"}],
+        fallbackCards: [{"type": "word", "topicId": 1, "question": "Apple", "answer": "Яблуко"}]
+    }
+};
+
+const TYPE_NAMES = {
+    date: 'Дата',
+    term: 'Термін',
+    person: 'Постать',
+    word: 'Слово',
+    phrase: 'Фраза',
+    grammar: 'Граматика'
+};
 
 const hashString = str => {
     let hash = 0;
@@ -9,8 +32,17 @@ const hashString = str => {
     return Math.abs(hash).toString(36);
 };
 
+const migrateOldProgress = () => {
+    const old = localStorage.getItem('flashcardProgress');
+    if (old && !localStorage.getItem('flashcardProgress_history')) {
+        localStorage.setItem('flashcardProgress_history', old);
+        localStorage.removeItem('flashcardProgress');
+    }
+};
+
 class SpacedRepetition {
     constructor() {
+        this.subjectId = null;
         this.cards = [];
         this.topics = [];
         this.sessionQueue = [];
@@ -21,14 +53,18 @@ class SpacedRepetition {
         this.testAnswered = false;
     }
 
-    async init() {
+    async init(subjectId) {
+        this.subjectId = subjectId;
+        const config = SUBJECTS[subjectId];
+        
         try {
-            const fetches = ['materials/data.json', 'materials/dates.json', 'materials/persons.json', 'materials/terms.json', 'materials/topics.json'].map(url => 
+            const fetches = config.files.map(url => 
                 fetch(url).then(res => res.ok ? res.json() : []).catch(() => [])
             );
             
-            const [data, dates, persons, terms, topics] = await Promise.all(fetches);
-            const rawCards = [...data, ...dates, ...persons, ...terms];
+            const results = await Promise.all(fetches);
+            const topics = results.pop();
+            const rawCards = results.flat();
             
             this.cards = rawCards.map(c => ({
                 ...c,
@@ -38,14 +74,18 @@ class SpacedRepetition {
             this.topics = topics;
             if (!this.topics.length || !this.cards.length) throw new Error();
         } catch {
-            this.cards = FALLBACK_CARDS.map(c => ({ ...c, id: hashString(c.question) }));
-            this.topics = FALLBACK_TOPICS;
+            this.cards = config.fallbackCards.map(c => ({ ...c, id: hashString(c.question) }));
+            this.topics = config.fallbackTopics;
         }
         this.loadProgress();
     }
 
+    getProgressKey() {
+        return `flashcardProgress_${this.subjectId}`;
+    }
+
     loadProgress() {
-        const saved = localStorage.getItem('flashcardProgress');
+        const saved = localStorage.getItem(this.getProgressKey());
         const progress = saved ? JSON.parse(saved) : {};
         this.cards = this.cards.map(card => ({
             ...card,
@@ -61,11 +101,11 @@ class SpacedRepetition {
             }
             return acc;
         }, {});
-        localStorage.setItem('flashcardProgress', JSON.stringify(progress));
+        localStorage.setItem(this.getProgressKey(), JSON.stringify(progress));
     }
 
     resetProgress() {
-        localStorage.removeItem('flashcardProgress');
+        localStorage.removeItem(this.getProgressKey());
         this.loadProgress();
     }
 
@@ -187,11 +227,14 @@ class SpacedRepetition {
     }
 }
 
+migrateOldProgress();
+
 const sr = new SpacedRepetition();
 const state = { active: false, reviewed: 0, total: 0, isTransitioning: false };
 const $ = id => document.getElementById(id);
 
 const els = {
+    selection: $('subjectSelection'), app: $('appContent'), title: $('appTitle'), back: $('backBtn'),
     topic: $('topicFilter'), type: $('typeFilter'), importance: $('importanceFilter'), mode: $('modeFilter'),
     start: $('startBtn'), reset: $('resetBtn'), stats: $('stats'), container: $('cardContainer'), card: $('card'),
     typeFront: $('cardType'), typeBack: $('cardTypeBack'), badgeFront: $('cardBadge'), badgeBack: $('cardBadgeBack'),
@@ -200,10 +243,28 @@ const els = {
     sTotal: $('statTotal'), sNew: $('statNew'), sLearn: $('statLearning'), sMaster: $('statMastered')
 };
 
-async function init() {
-    await sr.init();
+async function loadSubject(subjectId) {
+    els.selection.style.display = 'none';
+    els.app.style.display = 'flex';
+    els.title.textContent = SUBJECTS[subjectId].name;
+    
+    await sr.init(subjectId);
+    
+    els.topic.innerHTML = '<option value="all">Всі теми</option>';
     sr.topics.forEach(t => els.topic.insertAdjacentHTML('beforeend', `<option value="${t.id}">${t.id}. ${t.name}</option>`));
+    
+    els.type.innerHTML = '<option value="all">Всі типи</option>';
+    const types = [...new Set(sr.cards.map(c => c.type))];
+    types.forEach(type => els.type.insertAdjacentHTML('beforeend', `<option value="${type}">${TYPE_NAMES[type] || type}</option>`));
+    
     updateStats();
+}
+
+function closeSubject() {
+    if (state.active) endSession();
+    els.app.style.display = 'none';
+    els.selection.style.display = 'flex';
+    sr.subjectId = null;
 }
 
 function updateStats() {
@@ -214,12 +275,8 @@ function updateStats() {
     els.sMaster.textContent = s.mastered;
 }
 
-function getTypeName(type) {
-    return type === 'date' ? 'Дата' : type === 'term' ? 'Термін' : 'Постать';
-}
-
 function updateCardContent(card) {
-    const typeName = getTypeName(card.type);
+    const typeName = TYPE_NAMES[card.type] || card.type;
     const typeClass = `card-type type-${card.type}`;
     const isReverse = els.mode.value === 'reverse';
     const isTest = els.mode.value === 'test';
@@ -273,6 +330,8 @@ function startSession() {
         return;
     }
     
+    document.body.classList.add('session-active');
+    
     state.reviewed = 0;
     state.active = true;
     state.isTransitioning = false;
@@ -297,6 +356,8 @@ function startSession() {
 }
 
 function endSession() {
+    document.body.classList.remove('session-active');
+    
     state.active = false;
     state.isTransitioning = false;
     els.empty.style.display = 'block';
@@ -373,9 +434,14 @@ async function rateCard(rating) {
     state.isTransitioning = false;
 }
 
+document.querySelectorAll('.subject-card').forEach(btn => {
+    btn.addEventListener('click', () => loadSubject(btn.dataset.subject));
+});
+
+els.back.addEventListener('click', closeSubject);
 els.start.addEventListener('click', () => state.active ? endSession() : startSession());
 els.reset.addEventListener('click', () => {
-    if (confirm('Скинути весь прогрес? Це неможливо скасувати.')) {
+    if (confirm('Скинути весь прогрес з цього предмету? Це неможливо скасувати.')) {
         sr.resetProgress();
         updateStats();
         if (state.active) endSession();
@@ -422,5 +488,3 @@ document.addEventListener('keydown', e => {
         }
     }
 });
-
-init();

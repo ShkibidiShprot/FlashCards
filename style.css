@@ -7,16 +7,15 @@
     --border: #dee2e6;
     --card-bg: #ffffff;
     --card-back: #f8f9fa;
-    --date-bg: #e3f2fd; --date-text: #1976d2;
-    --term-bg: #f3e5f5; --term-text: #7b1fa2;
-    --person-bg: #e8f5e9; --person-text: #388e3c;
-    --badge-bg: #fff3e0; --badge-text: #e65100;
+    --badge-bg: #fff3e0; 
+    --badge-text: #e65100;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -28,6 +27,62 @@ body {
     flex-direction: column;
     line-height: 1.5;
     overflow-x: hidden;
+}
+
+.subject-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 2rem;
+    animation: fadeIn 0.4s ease;
+}
+
+.subject-selection h1 {
+    font-size: 2rem;
+    margin-bottom: 2.5rem;
+    text-align: center;
+}
+
+.subject-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 800px;
+}
+
+.subject-card {
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.subject-icon {
+    font-size: 4rem;
+    line-height: 1;
+}
+
+.subject-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+#appContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 header {
@@ -43,9 +98,28 @@ header {
     z-index: 10;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 h1 {
     font-size: 1.5rem;
     font-weight: 600;
+}
+
+.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .controls {
@@ -53,6 +127,11 @@ h1 {
     gap: 0.75rem;
     align-items: center;
     flex-wrap: wrap;
+}
+
+body.session-active .controls select,
+body.session-active #resetBtn {
+    display: none;
 }
 
 select, button {
@@ -84,14 +163,40 @@ button.primary {
     font-weight: 500;
 }
 
-button.primary:hover {
-    background: var(--primary-hover);
-    border-color: var(--primary-hover);
-    transform: translateY(-1px);
+@media (hover: hover) {
+    .subject-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+        box-shadow: 0 12px 24px rgba(52, 152, 219, 0.1);
+    }
+    .icon-btn:hover {
+        background: var(--bg);
+        color: var(--primary);
+        border-color: var(--primary);
+    }
+    button.primary:hover {
+        background: var(--primary-hover);
+        border-color: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+    button:not(.primary):hover, select:hover {
+        background: var(--bg);
+    }
+    .card:hover:not(.flipped) .card-front {
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
+    }
+    .option-btn:hover:not(:disabled) {
+        border-color: var(--primary);
+        background: var(--bg);
+    }
+    .rating-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    }
 }
 
-button:not(.primary):hover, select:hover {
-    background: var(--bg);
+button:active {
+    transform: scale(0.97) !important;
 }
 
 main {
@@ -135,6 +240,7 @@ main {
     border-radius: 3px;
     margin-bottom: 1.5rem;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .progress-fill {
@@ -166,7 +272,6 @@ main {
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     user-select: none;
-    -webkit-tap-highlight-color: transparent;
 }
 
 .card.no-transition {
@@ -193,14 +298,11 @@ main {
     transition: box-shadow 0.3s ease;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
 
 .card-face::-webkit-scrollbar {
     display: none;
-}
-
-.card:hover:not(.flipped) .card-front {
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
 }
 
 .card-back {
@@ -222,7 +324,16 @@ main {
 
 .card-type {
     left: 1.5rem;
+    background: #f1f3f5;
+    color: #495057;
 }
+
+.card-type.type-date { background: #e3f2fd; color: #1976d2; }
+.card-type.type-term { background: #f3e5f5; color: #7b1fa2; }
+.card-type.type-person { background: #e8f5e9; color: #388e3c; }
+.card-type.type-word { background: #fff3e0; color: #e65100; }
+.card-type.type-phrase { background: #e0f2f1; color: #00695c; }
+.card-type.type-grammar { background: #fce4ec; color: #c2185b; }
 
 .card-badge {
     right: 1.5rem;
@@ -261,11 +372,6 @@ main {
     width: 100%;
 }
 
-.option-btn:hover:not(:disabled) {
-    border-color: var(--primary);
-    background: var(--bg);
-}
-
 .option-btn.correct {
     border-color: #2e7d32;
     background: #e8f5e9;
@@ -280,6 +386,7 @@ main {
 
 .option-btn:disabled {
     cursor: default;
+    transform: none !important;
 }
 
 .card-hint {
@@ -302,6 +409,7 @@ main {
     visibility: hidden;
     transform: translateY(15px);
     transition: opacity 0.3s ease, visibility 0.3s, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex-shrink: 0;
 }
 
 .rating-buttons.visible {
@@ -319,10 +427,6 @@ main {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     flex: 1;
     min-width: calc(25% - 0.75rem);
-}
-
-.rating-btn:active {
-    transform: translateY(1px);
 }
 
 .btn-again { background: #ffebee; color: #c62828; }
@@ -362,9 +466,23 @@ kbd {
 }
 
 @media (max-width: 768px) {
+    .subject-selection h1 {
+        font-size: 1.5rem;
+    }
+    .subject-card {
+        padding: 2rem 1.5rem;
+    }
     header {
         padding: 0.75rem;
         flex-direction: column;
+    }
+    body.session-active header {
+        flex-direction: row;
+        padding: 0.75rem 1rem;
+        justify-content: space-between;
+    }
+    body.session-active header .header-left h1 {
+        display: none;
     }
     h1 {
         font-size: 1.25rem;
@@ -379,6 +497,10 @@ kbd {
         min-width: calc(33.333% - 0.5rem);
         padding: 0.6rem 0.5rem;
         font-size: 0.85rem;
+    }
+    body.session-active #startBtn {
+        flex: none;
+        width: auto;
     }
     .controls select, .controls button {
         text-align: center;
